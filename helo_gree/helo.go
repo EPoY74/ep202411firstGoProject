@@ -7,8 +7,10 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"time"
 
 	"example.com/greetings"
 )
@@ -21,6 +23,12 @@ func main() {
 	//log.SetFlags(0)
 	if err != nil {
 		log.Fatalf("Не удалось открыть файл %v", err)
+	} else {
+		multyWriter := io.MultiWriter(os.Stdout, file)
+		timeNow := time.Now()
+		formattedString := fmt.Sprintf("Файл создан %v  в  %v", timeNow.)
+		if _, err := file.WriteString((formattedString))
+
 	}
 	defer file.Close()
 
