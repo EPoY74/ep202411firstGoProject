@@ -18,23 +18,38 @@ import (
 func main() {
 
 	// Открываю файл, если не получается - выдаю ошибку
-	file, err := os.OpenFile("helo.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	const fileName = "hello.log"
+
+	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_EXCL|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Printf("Файл %v уже существует.\nЕсли файл не существует - произошла другая ошибка", fileName)
+	} else {
+		timeNow := time.Now()
+		formattedString := fmt.Sprintf("Файл создан %v  в  %v \n",
+			timeNow.Format(time.DateOnly),
+			timeNow.Format(time.TimeOnly))
+		if _, err := file.WriteString((formattedString)); err != nil {
+			log.Fatalf("Не удалось записать в файл %v", err)
+		}
+		defer file.Close()
+	}
+
+	file1, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	log.SetPrefix("Greetings: ")
-	//log.SetFlags(0)
+	log.SetFlags(0)
 	if err != nil {
 		log.Fatalf("Не удалось открыть файл %v", err)
-	} else {
-		multyWriter := io.MultiWriter(os.Stdout, file)
-		timeNow := time.Now()
-		formattedString := fmt.Sprintf("Файл создан %v  в  %v", timeNow.)
-		if _, err := file.WriteString((formattedString))
-
 	}
-	defer file.Close()
+	defer file1.Close()
 
-	message, err := greetings.Hello("Milya")
+	multiWriter := io.MultiWriter(os.Stdout, file1)
+	logger := log.New(multiWriter, "Ошибка: ", log.Ldate|log.Ltime|log.Lshortfile)
+
+	message, err := greetings.Hello("")
 	if err != nil {
-		log.Fatal(err)
+		logger.Println(err)
+		os.Exit(1)
+		// log.Fatal(err)
 	}
 
 	fmt.Println(message)
